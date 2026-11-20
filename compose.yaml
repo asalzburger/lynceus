@@ -1,0 +1,39 @@
+name: lynceus
+services:
+  api:
+    image: lynceus-local:0.1
+    build: .
+    user: "${LYNCEUS_UID:-501}:${LYNCEUS_GID:-20}"
+    command: ["python","-m","lynceus","serve","--host","0.0.0.0"]
+    ports: ["127.0.0.1:3013:3013"]
+    environment:
+      LYNCEUS_DB: /state/lynceus.sqlite3
+    volumes: ["./var:/data", "state:/state"]
+    read_only: true
+    tmpfs: ["/tmp:size=256m,mode=1777"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 768m
+    pids_limit: 128
+  runner:
+    image: lynceus-local:0.1
+    build: .
+    user: "${LYNCEUS_UID:-501}:${LYNCEUS_GID:-20}"
+    command: ["python","-m","lynceus","worker"]
+    environment:
+      LYNCEUS_RUNNER_ID: lynceus-local
+      LYNCEUS_RUNNER_IMAGE: lynceus-local:0.1
+      LYNCEUS_DB: /state/lynceus.sqlite3
+    network_mode: none
+    volumes: ["./var:/data", "state:/state"]
+    read_only: true
+    tmpfs: ["/tmp:size=768m,mode=1777"]
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    mem_limit: 3g
+    cpus: 3
+    pids_limit: 192
+    stop_grace_period: 90s
+    depends_on: [api]
+volumes:
+  state:

@@ -1,0 +1,7 @@
+var
+.venv
+.agent-venv
+__pycache__
+.pytest_cache
+.git
+docs/screenshots
